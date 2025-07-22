@@ -54,60 +54,92 @@ class BilhetePDF(FPDF):
 
     def bilhete_bradesco(self, dados):
         # Nome do paciente - Negrito
-        self.set_font("Arial", "B", 12)
+        self.set_font("Times", "B", 12)
         self.cell(0, 8, dados['paciente'], ln=True, align='L')
         self.ln(2)
         
         # Convênio
-        self.set_font("Arial", "", 11)
+        self.set_font("Times", "", 11)
         self.cell(0, 6, "BRADESCO SAÚDE", ln=True, align='L')
         self.ln(3)
         
         # Texto principal
-        self.set_font("Arial", "", 10)
-        texto_principal = f"De acordo com os registros do MedTherapy, o paciente não compareceu à(s) sessão(ões) de {dados['data']} (motivo da falta: {dados['motivo']}). Senhor(a) recepcionista, favor gerar o token e colher a assinatura relativa à falta na próxima sessão."
+        self.set_font("Times", "", 11)
+        texto_principal = (
+        f"De acordo com os registros do MedTherapy, o paciente não compareceu à(s) "
+        f"sessão(ões) de {dados['data']} (motivo da falta: {dados['motivo']})."
+        )
+        self.write(5, texto_principal)
         
-        self.multi_cell(0, 5, texto_principal, align='L')
-        self.ln(5)
+        self.set_font("Times", "B", 11)
+        self.write(5, " Senhor(a) recepcionista, ")
+        
+        self.set_font("Times", "", 11)
+        self.write(5, "favor gerar o")
+        
+        self.set_font("Times", "B", 11)
+        self.write(5, " token ") 
+        
+        self.set_font("Times", "", 11)
+        self.write(5, "e colher a ")
+        
+        self.set_font("Times", "B", 11)
+        self.write(5, "assinatura") 
+        
+        self.set_font("Times", "", 11)
+        self.write(5," relativa à falta na próxima sessão.")
+        self.ln(10)
+        
         
         # Linha separadora pontilhada
         self.draw_dotted_line(self.get_x(), self.get_y(), self.get_x() + 170, self.get_y())
         self.ln(6)
         
-        # Token gerado
-        self.set_font("Arial", "", 10)
-        self.cell(25, 6, "Token gerado?", align='L')
+        self.set_font("Times", "B", 11)
+        self.cell(27, 6, "Token gerado?", align='L')
+        
+        self.set_font("Times", "", 11)
         self.cell(8, 6, "Sim", align='L')
         self.cell(8, 6, "(   )", align='L')
         self.cell(8, 6, "Não", align='L')
         self.cell(8, 6, "(   )", align='L')
         self.ln(8)
         
-        self.cell(0, 6, "Motivo (apenas se a resposta anterior for não):", ln=True)
-        self.ln(3)
+        self.write(6, "Motivo (apenas se a resposta anterior for não):   ")
         
-        # Primeira linha para motivo
+        x_inicio = self.get_x()
+        y = self.get_y()
+        
+        self.line(x_inicio, y + 5, x_inicio + 95, y + 5)
+        self.ln(13)
+        
+        # linhas para motivo
+        self.line(self.get_x(), self.get_y(), self.get_x() + 170, self.get_y())
+        self.ln(8)
         self.line(self.get_x(), self.get_y(), self.get_x() + 170, self.get_y())
         self.ln(8)
         
-        # Segunda linha para motivo
-        self.line(self.get_x(), self.get_y(), self.get_x() + 170, self.get_y())
-        self.ln(8)
-        
-        # Linha separadora pontilhada
+        # --------------
         self.draw_dotted_line(self.get_x(), self.get_y(), self.get_x() + 170, self.get_y())
         self.ln(6)
         
-        # Falta assinada
+        self.set_font("Times", "B", 11)
         self.cell(27, 6, "Falta assinada?", align='L')
+        
+        self.set_font("Times", "",11)
         self.cell(8, 6, "Sim", align='L')
         self.cell(8, 6, "(   )", align='L')
         self.cell(8, 6, "Não", align='L')
         self.cell(8, 6, "(   )", align='L')
         self.ln(8)
         
-        self.cell(0, 6, "Motivo (apenas se a resposta anterior for não):", ln=True)
-        self.ln(3)
+        self.write(6, "Motivo (apenas se a resposta anterior for não):   ")
+        
+        x_inicio = self.get_x()
+        y = self.get_y()
+        
+        self.line(x_inicio, y + 5, x_inicio + 95, y + 5)
+        self.ln(13)
         
         # Primeira linha para motivo da falta assinada
         self.line(self.get_x(), self.get_y(), self.get_x() + 170, self.get_y())
@@ -119,28 +151,42 @@ class BilhetePDF(FPDF):
 
     def bilhete_padrao(self, dados):
         # Nome do paciente - Negrito
-        self.set_font("Arial", "B", 11)
+        self.set_font("Times", "B", 11)
         self.cell(0, 6, dados['paciente'], ln=True, align='L')
         self.ln(1)
         
         # Convênio
-        self.set_font("Arial", "", 11)
+        self.set_font("Times", "", 11)
         self.cell(0, 6, dados['convenio'], ln=True, align='L')
         self.ln(2)
         
-        # Texto principal
-        self.set_font("Arial", "", 10)
-        texto_principal = f"De acordo com os registros do MedTherapy, o paciente não compareceu à(s) sessão(ões) de {dados['data']}. (motivo da falta: {dados['motivo']}). Senhor(a) recepcionista, favor colher a assinatura relativa à falta na próxima sessão."
+        # Texto inicial
+        self.set_font("Times", "", 11)
+        texto_principal = (
+        f"De acordo com os registros do MedTherapy, o paciente não compareceu à(s) "
+        f"sessão(ões) de {dados['data']}. (motivo da falta: {dados['motivo']}). "
+        )
+        self.write(5, texto_principal)
+
+        # Parte em negrito: "Senhor(a) recepcionista"
+        self.set_font("Times", "B", 11)
+        self.write(5, "Senhor(a) recepcionista")
+
+        # Continuação do texto em estilo normal
+        self.set_font("Times", "", 11)
+        self.write(5, ", favor colher a assinatura relativa à falta na próxima sessão.")
+        self.ln(10)  # pula uma linha ao final
+
         
-        self.multi_cell(0, 4.5, texto_principal, align='L')
-        self.ln(3)
-        
-        # Linha separadora pontilhada
+        # ----------------
         self.draw_dotted_line(self.get_x(), self.get_y(), self.get_x() + 170, self.get_y())
         self.ln(4)
         
-        # Falta assinada
+        self.set_font("Times", "B", 11)  # Aplica negrito
         self.cell(27, 5, "Falta assinada?", align='L')
+        
+        # Falta assinada
+        self.set_font("Times", "", 11)   # Volta ao normal
         self.cell(8, 5, "Sim", align='L')
         self.cell(8, 5, "(   )", align='L')
         self.cell(8, 5, "Não", align='L')
