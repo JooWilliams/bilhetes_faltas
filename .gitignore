@@ -1,0 +1,40 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# PDF ou outros arquivos gerados
+*.pdf
+
+# Virtual environment
+venv/
+env/
+.venv/
+.env/
+
+# IDEs e editores
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Arquivos de configuração locais
+*.env
+*.local
+*.log
+
+# Arquivos de backup e temporários
+*.bak
+*.tmp
+*.swp
+.DS_Store
+Thumbs.db
+
+# Arquivos de build
+build/
+dist/
+*.egg-info/
+
+# Cache do pip
+pip-wheel-metadata/
+__pypackages__/
