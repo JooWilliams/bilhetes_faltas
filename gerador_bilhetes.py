@@ -3,25 +3,32 @@ from fpdf import FPDF
 import math
 import os
 from datetime import datetime
+import tkinter as tk
+from tkinter import messagebox
 
 # Criar estrutura de pastas se não existir
 if not os.path.exists("planilhas"):
     os.makedirs("planilhas")
-    print("Pasta 'planilhas' criada. Coloque seu arquivo 'faltas.xlsx' dentro dela.")
+    print("Pasta 'planilhas' criada. Coloque seu arquivo 'excel' dentro dela.")
 
-if not os.path.exists("bilhetes_faltas"):
-    os.makedirs("bilhetes_faltas")
-    print("Pasta 'bilhetes_faltas' criada.")
+if not os.path.exists("bilhetes"):
+    os.makedirs("bilhetes")
+    print("Pasta 'bilhetes' criada.")
 
 # Caminhos dos arquivos
-caminho_planilha = os.path.join("planilhas", "faltas.xlsx")
-pasta_saida = "bilhetes_faltas"
+pasta_planilhas = "planilhas"
+pasta_saida = "bilhetes"
 
-# Verificar se o arquivo existe
-if not os.path.exists(caminho_planilha):
-    print(f"ERRO: Arquivo não encontrado em '{caminho_planilha}'")
-    print("Por favor, coloque o arquivo 'faltas.xlsx' na pasta 'planilhas'")
+# Procurar arquivos .xlsx
+arquivos_xlsx = [f for f in os.listdir(pasta_planilhas) if f.lower().endswith('.xlsx')]
+
+if not arquivos_xlsx:
+    print(f"ERRO: Nenhum arquivo .xlsx encontrado na pasta '{pasta_planilhas}'")
     exit()
+
+# Pega o primeiro arquivo encontrado
+caminho_planilha = os.path.join(pasta_planilhas, arquivos_xlsx[0])
+print(f"Usando o arquivo: {caminho_planilha}")
 
 # Leitura da planilha
 try:
@@ -90,7 +97,6 @@ class BilhetePDF(FPDF):
         self.write(5," relativa à falta na próxima sessão.")
         self.ln(10)
         
-        
         # Linha separadora pontilhada
         self.draw_dotted_line(self.get_x(), self.get_y(), self.get_x() + 170, self.get_y())
         self.ln(6)
@@ -150,7 +156,6 @@ class BilhetePDF(FPDF):
         self.ln(10)
 
     def bilhete_padrao(self, dados):
-        # Nome do paciente - Negrito
         self.set_font("Times", "B", 11)
         self.cell(0, 6, dados['paciente'], ln=True, align='L')
         self.ln(1)
@@ -168,11 +173,9 @@ class BilhetePDF(FPDF):
         )
         self.write(5, texto_principal)
 
-        # Parte em negrito: "Senhor(a) recepcionista"
         self.set_font("Times", "B", 11)
         self.write(5, "Senhor(a) recepcionista")
 
-        # Continuação do texto em estilo normal
         self.set_font("Times", "", 11)
         self.write(5, ", favor colher a assinatura relativa à falta na próxima sessão.")
         self.ln(10)  # pula uma linha ao final
@@ -182,11 +185,10 @@ class BilhetePDF(FPDF):
         self.draw_dotted_line(self.get_x(), self.get_y(), self.get_x() + 170, self.get_y())
         self.ln(4)
         
-        self.set_font("Times", "B", 11)  # Aplica negrito
+        self.set_font("Times", "B", 11)
         self.cell(27, 5, "Falta assinada?", align='L')
         
-        # Falta assinada
-        self.set_font("Times", "", 11)   # Volta ao normal
+        self.set_font("Times", "", 11)
         self.cell(8, 5, "Sim", align='L')
         self.cell(8, 5, "(   )", align='L')
         self.cell(8, 5, "Não", align='L')
@@ -214,8 +216,17 @@ class BilhetePDF(FPDF):
             self.line(current_x, y1, line_end, y1)
             current_x += 4
 
-# Gerar nome do arquivo com data e hora
-timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+# Pegar a primeira data da planilha (coluna "Data")
+primeira_data_str = df_geral["Data"].iloc[0]
+
+# Converter para objeto datetime (se ainda não for)
+if isinstance(primeira_data_str, str):
+    primeira_data = pd.to_datetime(primeira_data_str, dayfirst=True)
+else:
+    primeira_data = primeira_data_str
+
+# Formatação da data
+timestamp = primeira_data.strftime("%d-%m-%y")
 nome_arquivo = f"bilhetes_faltas_{timestamp}.pdf"
 caminho_saida = os.path.join(pasta_saida, nome_arquivo)
 
@@ -236,7 +247,7 @@ for i in range(0, len(bradesco_linhas), 2):
             pdf.set_y(y_position)
             pdf.bilhete_bradesco(bradesco_linhas[i + j])
 
-# ---- Outros: 3 por página
+# ---- Outros convênios: 3 por página
 outros_df = df_geral[df_geral["Convênio"].str.upper().str.contains("BRADESCO") == False]
 outros_linhas = [format_data(row) for _, row in outros_df.iterrows()]
 print(f"Gerando {len(outros_linhas)} bilhetes de outros convênios...")
@@ -258,3 +269,8 @@ try:
     print(f"Total de bilhetes gerados: {len(bradesco_linhas) + len(outros_linhas)}")
 except Exception as e:
     print(f"ERRO ao salvar o PDF: {e}")
+    
+# Mostra uma janela com mensagem de arquivo salvo
+root = tk.Tk()
+root.withdraw()
+messagebox.showinfo("Sucesso", f"PDF salvo em:\n{caminho_saida}")
