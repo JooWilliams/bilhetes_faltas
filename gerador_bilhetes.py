@@ -32,8 +32,7 @@ print(f"Usando o arquivo: {caminho_planilha}")
 
 # Leitura da planilha
 try:
-    df_geral = pd.read_excel(caminho_planilha, sheet_name="Geral")
-    df_bradesco = pd.read_excel(caminho_planilha, sheet_name="Bradesco")
+    df = pd.read_excel(caminho_planilha)
     print("Planilha carregada com sucesso!")
 except Exception as e:
     print(f"ERRO ao ler a planilha: {e}")
@@ -217,7 +216,7 @@ class BilhetePDF(FPDF):
             current_x += 4
 
 # Pegar a primeira data da planilha (coluna "Data")
-primeira_data_str = df_geral["Data"].iloc[0]
+primeira_data_str = df["Data"].iloc[0]
 
 # Converter para objeto datetime (se ainda não for)
 if isinstance(primeira_data_str, str):
@@ -235,6 +234,7 @@ pdf = BilhetePDF()
 pdf.set_auto_page_break(auto=False)
 
 # ---- Bradesco: 2 por página (formatação especial)
+df_bradesco = df[df["Convênio"].str.upper().str.contains("BRADESCO")]
 bradesco_linhas = [format_data(row) for _, row in df_bradesco.iterrows()]
 print(f"Gerando {len(bradesco_linhas)} bilhetes do Bradesco...")
 
@@ -248,7 +248,7 @@ for i in range(0, len(bradesco_linhas), 2):
             pdf.bilhete_bradesco(bradesco_linhas[i + j])
 
 # ---- Outros convênios: 3 por página
-outros_df = df_geral[df_geral["Convênio"].str.upper().str.contains("BRADESCO") == False]
+outros_df = df[~df["Convênio"].str.upper().str.contains("BRADESCO")]
 outros_linhas = [format_data(row) for _, row in outros_df.iterrows()]
 print(f"Gerando {len(outros_linhas)} bilhetes de outros convênios...")
 
