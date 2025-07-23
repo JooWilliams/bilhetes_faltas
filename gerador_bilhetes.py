@@ -3,31 +3,25 @@ from fpdf import FPDF
 import math
 import os
 from datetime import datetime
-import tkinter as tk
-from tkinter import messagebox
 
 # Criar estrutura de pastas se não existir
 if not os.path.exists("planilhas"):
     os.makedirs("planilhas")
     print("Pasta 'planilhas' criada. Coloque seu arquivo 'faltas.xlsx' dentro dela.")
 
-if not os.path.exists("bilhetes"):
-    os.makedirs("bilhetes")
-    print("Pasta 'bilhetes' criada.")
+if not os.path.exists("bilhetes_faltas"):
+    os.makedirs("bilhetes_faltas")
+    print("Pasta 'bilhetes_faltas' criada.")
 
-pasta_planilhas = "planilhas"
-pasta_saida = "bilhetes"
+# Caminhos dos arquivos
+caminho_planilha = os.path.join("planilhas", "faltas.xlsx")
+pasta_saida = "bilhetes_faltas"
 
-# Procurar arquivos .xlsx
-arquivos_xlsx = [f for f in os.listdir(pasta_planilhas) if f.lower().endswith('.xlsx')]
-
-if not arquivos_xlsx:
-    print(f"ERRO: Nenhum arquivo .xlsx encontrado na pasta '{pasta_planilhas}'")
+# Verificar se o arquivo existe
+if not os.path.exists(caminho_planilha):
+    print(f"ERRO: Arquivo não encontrado em '{caminho_planilha}'")
+    print("Por favor, coloque o arquivo 'faltas.xlsx' na pasta 'planilhas'")
     exit()
-
-# Pega o primeiro arquivo encontrado
-caminho_planilha = os.path.join(pasta_planilhas, arquivos_xlsx[0])
-print(f"Usando o arquivo: {caminho_planilha}")
 
 # Leitura da planilha
 try:
@@ -182,6 +176,7 @@ class BilhetePDF(FPDF):
         self.set_font("Times", "", 11)
         self.write(5, ", favor colher a assinatura relativa à falta na próxima sessão.")
         self.ln(10)  # pula uma linha ao final
+
         
         # ----------------
         self.draw_dotted_line(self.get_x(), self.get_y(), self.get_x() + 170, self.get_y())
@@ -219,17 +214,8 @@ class BilhetePDF(FPDF):
             self.line(current_x, y1, line_end, y1)
             current_x += 4
 
-# Pegar a primeira data da planilha (coluna "Data")
-primeira_data_str = df_geral["Data"].iloc[0]
-
-# Converter para objeto datetime (se ainda não for)
-if isinstance(primeira_data_str, str):
-    primeira_data = pd.to_datetime(primeira_data_str, dayfirst=True)
-else:
-    primeira_data = primeira_data_str
-
-# Formatar a data
-timestamp = primeira_data.strftime("%d-%m-%y")
+# Gerar nome do arquivo com data e hora
+timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 nome_arquivo = f"bilhetes_faltas_{timestamp}.pdf"
 caminho_saida = os.path.join(pasta_saida, nome_arquivo)
 
@@ -272,8 +258,3 @@ try:
     print(f"Total de bilhetes gerados: {len(bradesco_linhas) + len(outros_linhas)}")
 except Exception as e:
     print(f"ERRO ao salvar o PDF: {e}")
-
-# Após gerar com sucesso:
-root = tk.Tk()
-root.withdraw()
-messagebox.showinfo("Sucesso", f"PDF salvo em:\n{caminho_saida}")
